@@ -1,0 +1,786 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport"
+    content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <title>A Valentine's Promise | My Love</title>
+
+  <!-- Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link
+    href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;600&family=Dancing+Script:wght@400;600;700&family=Great+Vibes&family=Montserrat:wght@300;400;500&family=Playfair+Display:ital,wght@0,400;0,700;1,400&family=Quicksand:wght@300;500&display=swap"
+    rel="stylesheet">
+
+  <!-- GSAP -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/ScrollTrigger.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/TextPlugin.min.js"></script>
+
+  <!-- FontAwesome -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
+
+  <style>
+    :root {
+      --bg-deep: #0f0005;
+      --bg-gradient: radial-gradient(circle at center, #33000b 0%, #0f0005 80%);
+      --gold: #ff1e56;
+      --rose: #ff80ab;
+      --rose-glow: #ff1744;
+      --text-light: #fff0f3;
+      --text-dim: #ffc1e3;
+      --glass-bg: rgba(255, 30, 86, 0.03);
+      --glass-border: rgba(255, 30, 86, 0.1);
+      --blur-strength: 25px;
+    }
+
+    html,
+    body {
+      margin: 0;
+      padding: 0;
+      overflow: hidden;
+      width: 100%;
+      height: 100%;
+      background: var(--bg-deep);
+      background-image: var(--bg-gradient);
+      color: var(--text-light);
+      font-family: 'Quicksand', sans-serif;
+      cursor: none;
+    }
+
+    /* --- SUSPENSE OVERLAY --- */
+    #suspense-overlay {
+      position: fixed;
+      inset: 0;
+      background: #000;
+      z-index: 50;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.5s ease;
+    }
+
+    #suspense-overlay.active {
+      opacity: 1;
+      pointer-events: auto;
+    }
+
+    .suspense-heart {
+      font-size: 5rem;
+      color: #ff1e56;
+      animation: heartbeat 1.2s infinite;
+      filter: drop-shadow(0 0 20px #ff1744);
+    }
+
+    @keyframes heartbeat {
+      0% { transform: scale(1); }
+      15% { transform: scale(1.3); }
+      30% { transform: scale(1); }
+      45% { transform: scale(1.15); }
+      60% { transform: scale(1); }
+      100% { transform: scale(1); }
+    }
+
+    /* --- Cursor --- */
+    .cursor-dot,
+    .cursor-outline {
+      position: fixed;
+      top: 0;
+      left: 0;
+      transform: translate(-50%, -50%);
+      border-radius: 50%;
+      z-index: 9999;
+      pointer-events: none;
+    }
+
+    .cursor-dot {
+      width: 6px;
+      height: 6px;
+      background-color: #fff;
+      box-shadow: 0 0 10px var(--rose-glow);
+    }
+
+    .cursor-outline {
+      width: 40px;
+      height: 40px;
+      border: 1px solid rgba(255, 30, 86, 0.5);
+      transition: width 0.3s, height 0.3s;
+      box-shadow: 0 0 25px rgba(255, 23, 68, 0.15);
+      backdrop-filter: blur(2px);
+    }
+
+    @media (hover: none) {
+      .cursor-dot, .cursor-outline { display: none; }
+      * { cursor: auto; }
+      body { cursor: auto; }
+    }
+
+    /* --- Canvas --- */
+    #heart-canvas {
+      position: fixed;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+      z-index: 0;
+      pointer-events: none;
+    }
+
+    /* --- SCENE CONTAINERS --- */
+    .scene {
+      position: fixed;
+      inset: 0;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      z-index: 10;
+      opacity: 0;
+      visibility: hidden;
+      pointer-events: none;
+      transition: opacity 1s ease, visibility 1s;
+    }
+
+    .scene.active {
+      opacity: 1;
+      visibility: visible;
+      pointer-events: auto;
+      z-index: 20;
+    }
+
+    /* --- NEXT BUTTON STYLE --- */
+    .next-btn {
+      margin-top: 40px;
+      padding: 15px 40px;
+      font-family: 'Cinzel', serif;
+      font-size: 1.2rem;
+      color: var(--text-light);
+      background: rgba(255, 23, 68, 0.1);
+      border: 1px solid var(--gold);
+      border-radius: 50px;
+      cursor: pointer;
+      backdrop-filter: blur(10px);
+      box-shadow: 0 0 20px rgba(255, 23, 68, 0.3);
+      transition: all 0.3s ease;
+      opacity: 0;
+      pointer-events: none;
+      transform: translateY(20px);
+      z-index: 30;
+      position: relative;
+      text-transform: uppercase;
+      letter-spacing: 2px;
+    }
+
+    .next-btn.show {
+      opacity: 1;
+      pointer-events: auto;
+      transform: translateY(0);
+      animation: glow 2s infinite;
+    }
+
+    .next-btn:hover {
+      background: var(--gold);
+      color: #fff;
+      box-shadow: 0 0 40px rgba(255, 23, 68, 0.6);
+      transform: scale(1.05);
+    }
+
+    @keyframes glow {
+      0% { box-shadow: 0 0 10px rgba(255, 23, 68, 0.3); }
+      50% { box-shadow: 0 0 25px rgba(255, 23, 68, 0.6); }
+      100% { box-shadow: 0 0 10px rgba(255, 23, 68, 0.3); }
+    }
+
+    /* --- SCENE 1: INTRO --- */
+    .intro-title {
+      font-family: 'Great Vibes', cursive;
+      font-size: 6rem;
+      background: linear-gradient(to right, #fff, var(--rose), var(--gold));
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      line-height: 1.1;
+      margin-bottom: 2rem;
+      text-align: center;
+      filter: drop-shadow(0 0 30px rgba(255, 23, 68, 0.6));
+      z-index: 25;
+      position: relative;
+    }
+
+    .cursor-blink {
+      display: inline-block;
+      width: 4px;
+      height: 4.5rem;
+      background-color: var(--gold);
+      animation: blink 1s infinite;
+      vertical-align: middle;
+      margin-left: 10px;
+    }
+
+    .quote-box {
+      font-family: 'Playfair Display', serif;
+      font-style: italic;
+      font-size: 1.6rem;
+      color: var(--text-dim);
+      max-width: 800px;
+      padding: 40px 60px;
+      background: rgba(255, 23, 68, 0.05);
+      border: 1px solid var(--glass-border);
+      border-radius: 25px;
+      backdrop-filter: blur(15px);
+      transform: translateY(30px);
+      opacity: 0;
+      z-index: 25;
+      position: relative;
+      box-shadow: 0 0 50px rgba(255, 23, 68, 0.15);
+    }
+
+    /* --- SCENE 2: MELODIES --- */
+    .music-container {
+      display: flex;
+      gap: 40px;
+      flex-wrap: wrap;
+      justify-content: center;
+      margin-top: 20px;
+      z-index: 25;
+      position: relative;
+    }
+
+    .music-card {
+      width: 200px;
+      height: 260px;
+      background: var(--glass-bg);
+      border: 1px solid var(--glass-border);
+      border-radius: 20px;
+      padding: 20px;
+      text-align: center;
+      position: relative;
+      backdrop-filter: blur(var(--blur-strength));
+      transition: all 0.5s cubic-bezier(0.23, 1, 0.32, 1);
+      cursor: pointer;
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+    }
+
+    .music-card.played {
+      border-color: var(--gold);
+      box-shadow: 0 0 50px rgba(255, 23, 68, 0.5);
+      transform: scale(1.05);
+    }
+
+    .music-thumb {
+      width: 100%;
+      aspect-ratio: 1/1;
+      object-fit: cover;
+      border-radius: 50%;
+      border: 2px solid rgba(255, 255, 255, 0.1);
+      margin-bottom: 15px;
+    }
+
+    .music-info h3 {
+      font-family: 'Cinzel', serif;
+      font-size: 1.1rem;
+      color: var(--text-light);
+    }
+
+    .music-info p {
+      color: var(--rose);
+      font-size: 0.7rem;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+    }
+
+    .instruction-text {
+      margin-bottom: 30px;
+      font-family: 'Montserrat', sans-serif;
+      color: var(--gold);
+      letter-spacing: 2px;
+      text-transform: uppercase;
+      font-size: 0.9rem;
+      opacity: 0.8;
+      animation: pulse 2s infinite;
+      z-index: 25;
+      position: relative;
+    }
+
+    @keyframes blink { 0%, 100% { opacity: 1; } 50% { opacity: 0; } }
+    @keyframes pulse { 0% { opacity: 0.5; } 50% { opacity: 1; } 100% { opacity: 0.5; } }
+
+    /* --- SCENE 3: LETTER --- */
+    .letter-paper {
+      background: #fff0f5;
+      color: #4a0013;
+      padding: 70px 90px;
+      border-radius: 2px;
+      width: 90%;
+      max-width: 850px;
+      box-shadow: 0 40px 80px rgba(0, 0, 0, 0.7);
+      position: relative;
+      background-image: linear-gradient(#ffc1e3 1px, transparent 1px);
+      background-size: 100% 2.5rem;
+      min-height: 400px;
+      z-index: 25;
+      transform: rotate(-1deg);
+    }
+
+    .letter-content {
+      font-family: 'Dancing Script', cursive;
+      font-size: 1.9rem;
+      line-height: 2.6rem;
+      text-align: justify;
+      font-weight: 500;
+      min-height: 300px;
+    }
+
+    .letter-signature {
+      text-align: right;
+      margin-top: 40px;
+      font-family: 'Great Vibes', cursive;
+      font-size: 2.8rem;
+      color: #d81b60;
+    }
+
+    /* --- SCENE 4: GALLERY --- */
+    .gallery-wrapper {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      width: 100%;
+      height: 100%;
+      z-index: 25;
+      position: relative;
+      padding: 20px;
+      box-sizing: border-box;
+      overflow-y: auto;
+    }
+
+    .gallery-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 20px;
+      width: 100%;
+      max-width: 1100px;
+      margin-top: auto;
+      margin-bottom: auto;
+    }
+
+    .gallery-item {
+      background: #fff;
+      padding: 10px;
+      border-radius: 4px;
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+      transition: transform 0.3s;
+      cursor: pointer;
+      border-bottom: 4px solid #d81b60;
+      width: 100%;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .gallery-item:hover {
+      transform: scale(1.05) rotate(0deg) !important;
+      z-index: 10;
+      box-shadow: 0 0 30px rgba(255, 23, 68, 0.3);
+    }
+
+    .gallery-item img {
+      width: 100%;
+      height: 250px;
+      object-fit: cover;
+      border: 1px solid #eee;
+      border-radius: 2px;
+    }
+
+    .gallery-caption {
+      text-align: center;
+      font-family: 'Dancing Script', cursive;
+      margin-top: 10px;
+      font-size: 1.2rem;
+      color: #333;
+      font-weight: 600;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .final-message-container {
+      margin-top: 10px;
+      margin-bottom: 40px;
+      text-align: center;
+      padding: 30px 20px;
+      background: rgba(255, 23, 68, 0.15);
+      border: 1px solid var(--glass-border);
+      border-radius: 20px;
+      backdrop-filter: blur(15px);
+      width: 90%;
+      max-width: 600px;
+      opacity: 0;
+      transform: translateY(20px);
+      transition: all 1.5s ease;
+    }
+
+    .final-message-container.show {
+      opacity: 1;
+      transform: translateY(0);
+    }
+
+    .final-emoji {
+      font-size: 3rem;
+      margin-bottom: 10px;
+      display: block;
+    }
+
+    .final-text {
+      font-size: 1rem;
+      color: var(--text-light);
+      line-height: 1.6;
+    }
+
+    .final-highlight {
+      color: var(--gold);
+      font-weight: bold;
+      font-family: 'Great Vibes', cursive;
+      font-size: 1.4rem;
+    }
+
+    @media (max-width: 900px) {
+      .gallery-grid { grid-template-columns: repeat(2, 1fr); }
+      .gallery-item img { height: 200px; }
+    }
+
+    @media (max-width: 768px) {
+      .intro-title { font-size: 3.5rem; }
+      .gallery-grid { grid-template-columns: 1fr; gap: 25px; }
+      .gallery-item img { height: 280px; }
+      .music-card { width: 140px; height: 190px; }
+      .letter-paper { padding: 30px; background-size: 100% 2rem; transform: rotate(0); }
+      .letter-content { font-size: 1.4rem; line-height: 2rem; }
+    }
+  </style>
+</head>
+
+<body>
+
+  <div class="cursor-dot" data-cursor-dot></div>
+  <div class="cursor-outline" data-cursor-outline></div>
+  <canvas id="heart-canvas"></canvas>
+
+  <!-- SUSPENSE BLACKOUT OVERLAY -->
+  <div id="suspense-overlay">
+    <div class="suspense-heart"><i class="fas fa-heart"></i></div>
+  </div>
+
+  <!-- SCENE 1: INTRO -->
+  <div id="scene-intro" class="scene active">
+    <h1 class="intro-title" id="typing-intro"></h1><span class="cursor-blink"></span>
+    <div class="quote-box">
+      "In a world full of temporary things,<br>you are a perpetual feeling."
+    </div>
+  </div>
+
+  <!-- SCENE 2: MELODIES -->
+  <div id="scene-music" class="scene">
+    <h2 class="intro-title" style="font-size: 4rem;">Melodies of Love</h2>
+    <div class="instruction-text">Click on songs to listen (Play all 3 to proceed)</div>
+
+    <div class="music-container">
+      <div class="music-card" data-played="0"
+        onclick="handleMusicClick(this, 'song/1.mp3')">
+        <img src="https://picsum.photos/seed/music1/200" class="music-thumb">
+        <div class="music-info">
+          <h3>Piano Moment</h3>
+          <p>Instrumental</p>
+        </div>
+      </div>
+
+      <div class="music-card" data-played="0"
+        onclick="handleMusicClick(this, 'song/2.mp3')">
+        <img src="https://picsum.photos/seed/music2/200" class="music-thumb">
+        <div class="music-info">
+          <h3>Romantic Night</h3>
+          <p>Piano</p>
+        </div>
+      </div>
+
+      <div class="music-card" data-played="0"
+        onclick="handleMusicClick(this, 'song/3.mp3')">
+        <img src="https://picsum.photos/seed/music3/200" class="music-thumb">
+        <div class="music-info">
+          <h3>Soulmate</h3>
+          <p>Chill</p>
+        </div>
+      </div>
+    </div>
+
+    <button id="music-next-btn" class="next-btn" onclick="startBgAndGo()">
+      Next Chapter <i class="fas fa-arrow-right"></i>
+    </button>
+
+    <!-- Cards audio -->
+    <audio id="globalAudio" preload="auto"></audio>
+
+    <!-- ✅ Background long song (LOCAL) -->
+    <audio id="bgAudio" src="song/song.mp3" preload="auto" loop></audio>
+  </div>
+
+  <!-- SCENE 3: LETTER -->
+  <div id="scene-letter" class="scene">
+    <div class="letter-paper">
+      <div class="letter-content" id="typewriter-text"></div>
+      <div class="letter-signature">Forever Yours,<br>Kaviraj</div>
+    </div>
+
+    <button id="letter-next-btn" class="next-btn" onclick="goToScene('scene-gallery')">
+      Read More <i class="fas fa-arrow-right"></i>
+    </button>
+  </div>
+
+  <!-- SCENE 4: GALLERY -->
+  <div id="scene-gallery" class="scene">
+    <div class="gallery-wrapper">
+      <h2 class="intro-title" style="font-size: 3rem; margin-bottom: 10px; margin-top: 10px;">Our Eternal Journey</h2>
+
+      <div class="gallery-grid" id="gallery-container"></div>
+
+      <div class="final-message-container" id="final-msg">
+        <span class="final-emoji">❤️🌹💕</span>
+        <div class="final-text">
+          If I had to choose between breathing and loving you,<br>
+          I would use my last breath to tell you...<br>
+          I love you more than <span class="final-highlight">Words</span> could ever say.
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    gsap.registerPlugin(TextPlugin);
+
+    // --- 1. CURSOR ---
+    const cursorDot = document.querySelector("[data-cursor-dot]");
+    const cursorOutline = document.querySelector("[data-cursor-outline]");
+
+    window.addEventListener("mousemove", (e) => {
+      cursorDot.style.left = `${e.clientX}px`;
+      cursorDot.style.top = `${e.clientY}px`;
+
+      cursorOutline.animate(
+        { left: `${e.clientX}px`, top: `${e.clientY}px` },
+        { duration: 500, fill: "forwards" }
+      );
+    });
+
+    // --- 2. ROMANTIC PARTICLES ---
+    const canvas = document.getElementById('heart-canvas');
+    const ctx = canvas.getContext('2d');
+    let particles = [];
+
+    function resizeCanvas() {
+      canvas.width = window.innerWidth;
+      canvas.height = window.innerHeight;
+    }
+    window.addEventListener('resize', resizeCanvas);
+    resizeCanvas();
+
+    class RomanticParticle {
+      constructor() {
+        this.x = Math.random() * canvas.width;
+        this.y = canvas.height + 50;
+        this.speed = Math.random() * 1.5 + 0.2;
+        this.size = Math.random() * 3 + 1;
+        this.opacity = Math.random() * 0.8 + 0.1;
+        this.type = Math.random() > 0.7 ? 'heart' : 'sparkle';
+        this.texts = ["Be Mine", "Forever", "Valentine", "Love", "♥"];
+        this.text = this.texts[Math.floor(Math.random() * this.texts.length)];
+      }
+      update() {
+        this.y -= this.speed;
+        this.x += Math.sin(this.y * 0.01) * 0.5;
+        if (this.y < -50) this.y = canvas.height + 50;
+      }
+      draw() {
+        ctx.fillStyle = `rgba(255, 23, 68, ${this.opacity})`;
+        if (this.type === 'sparkle') {
+          ctx.beginPath();
+          ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2);
+          ctx.fill();
+        } else {
+          ctx.font = `${Math.random() * 10 + 15}px 'Great Vibes'`;
+          ctx.fillText(this.text, this.x, this.y);
+        }
+      }
+    }
+
+    function initParticles() {
+      particles = [];
+      for (let i = 0; i < 40; i++) particles.push(new RomanticParticle());
+    }
+
+    function animateParticles() {
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      particles.forEach(p => { p.update(); p.draw(); });
+      requestAnimationFrame(animateParticles);
+    }
+
+    initParticles();
+    animateParticles();
+
+    // --- 3. SCENE TRANSITION ---
+    const globalAudio = document.getElementById('globalAudio'); // cards audio
+    const bgAudio = document.getElementById('bgAudio');         // long bg song
+
+    function switchScene(currentId, nextId) {
+      const current = document.getElementById(currentId);
+      const next = document.getElementById(nextId);
+      const overlay = document.getElementById('suspense-overlay');
+
+      gsap.to(current, { opacity: 0, duration: 0.8, ease: "power2.out" });
+      overlay.classList.add('active');
+
+      setTimeout(() => {
+        overlay.classList.remove('active');
+        current.classList.remove('active');
+        current.style.visibility = 'hidden';
+
+        next.classList.add('active');
+        next.style.visibility = 'visible';
+
+        gsap.fromTo(next,
+          { opacity: 0, scale: 0.96, filter: "blur(6px)" },
+          { opacity: 1, scale: 1, filter: "blur(0px)", duration: 1.3, ease: "power3.out" }
+        );
+      }, 1800);
+    }
+
+    function goToScene(nextId) {
+      const active = document.querySelector('.scene.active');
+      const currentBtn = active.querySelector('.next-btn');
+      if (currentBtn) currentBtn.classList.remove('show');
+
+      switchScene(active.id, nextId);
+
+      if (nextId === 'scene-letter') {
+        setTimeout(() => startTypewriter(), 2200);
+      }
+
+      if (nextId === 'scene-gallery') {
+        setTimeout(() => {
+          document.getElementById('final-msg').classList.add('show');
+        }, 2300);
+      }
+    }
+
+    // ✅ This starts long background song after music scene
+    function startBgAndGo() {
+      // stop card audio
+      globalAudio.pause();
+      globalAudio.currentTime = 0;
+
+      // start long bg music
+      bgAudio.volume = 0.6;
+      bgAudio.play().catch(() => console.log("BG autoplay blocked"));
+
+      goToScene('scene-letter');
+    }
+
+    // --- 4. POPULATE GALLERY ---
+    function loadGallery() {
+      const container = document.getElementById('gallery-container');
+      const captions = ["The First Look", "My Safe Place", "Eternal Smiles", "Precious Time", "Always You", "Endless Love"];
+
+      for (let i = 1; i <= 6; i++) {
+        const item = document.createElement('div');
+        item.className = 'gallery-item';
+        item.style.transform = `rotate(${(Math.random() * 8 - 4).toFixed(2)}deg)`;
+
+        item.innerHTML = `
+          <img src="https://picsum.photos/seed/love${i}/300" alt="Memory ${i}">
+          <div class="gallery-caption">${captions[i - 1]} ❤️</div>
+        `;
+        container.appendChild(item);
+      }
+    }
+    loadGallery();
+
+    // --- 5. FLOW LOGIC ---
+
+    // INTRO -> MUSIC
+    const introText = "A Heartbeat Away... ❤️";
+    const introTarget = document.getElementById('typing-intro');
+    let charIndex = 0;
+
+    function typeIntro() {
+      if (charIndex < introText.length) {
+        introTarget.innerHTML += introText.charAt(charIndex);
+        charIndex++;
+        setTimeout(typeIntro, 100);
+      } else {
+        document.querySelector('.cursor-blink').style.display = 'none';
+        gsap.to('.quote-box', {
+          opacity: 1, y: 0, duration: 1.6, delay: 0.4,
+          onComplete: () => {
+            setTimeout(() => { goToScene('scene-music'); }, 2600);
+          }
+        });
+      }
+    }
+    setTimeout(typeIntro, 900);
+
+    // MUSIC LOGIC
+    let clickedCards = 0;
+    const totalCards = 3;
+
+    function handleMusicClick(card, audioSrc) {
+      if (card.dataset.played === "1") {
+        globalAudio.src = audioSrc;
+        globalAudio.play().catch(() => console.log("Audio missing"));
+        return;
+      }
+
+      card.dataset.played = "1";
+      card.classList.add('played');
+      clickedCards++;
+
+      globalAudio.src = audioSrc;
+      globalAudio.volume = 0.85;
+      globalAudio.play().catch(() => console.log("Audio missing"));
+
+      if (clickedCards >= totalCards) {
+        document.getElementById('music-next-btn').classList.add('show');
+      }
+    }
+
+    // LETTER LOGIC
+    const fullText =
+      "My Dearest Valentine,\n\n" +
+      "If I could give you one thing in life, I would give you the ability to see yourself through my eyes. Only then would you realize how special you are to me.\n\n" +
+      "Loving you is the easiest thing I have ever done, and missing you is the hardest. You are not just a part of my life; you are the center of my existence.\n\n" +
+      "This Valentine's Day, I don't just promise to love you. I promise to choose you, in every lifetime, in every reality.\n\n" +
+      "Be Mine,\nKaviraj";
+
+    let letterStarted = false;
+
+    function startTypewriter() {
+      if (letterStarted) return;
+      letterStarted = true;
+
+      const textElement = document.getElementById('typewriter-text');
+      textElement.innerHTML = "";
+      let i = 0;
+
+      function type() {
+        if (i < fullText.length) {
+          textElement.innerHTML += (fullText.charAt(i) === '\n') ? '<br>' : fullText.charAt(i);
+          i++;
+          setTimeout(type, 35);
+        } else {
+          document.getElementById('letter-next-btn').classList.add('show');
+        }
+      }
+      type();
+    }
+  </script>
+
+</body>
+</html>
