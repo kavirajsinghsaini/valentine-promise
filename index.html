@@ -384,7 +384,7 @@
       box-shadow: 0 0 30px rgba(255, 23, 68, 0.3);
     }
 
-    .gallery-item img {
+    .gallery-item  {
       width: 100%;
       height: 250px;
       object-fit: cover;
@@ -446,13 +446,13 @@
 
     @media (max-width: 900px) {
       .gallery-grid { grid-template-columns: repeat(2, 1fr); }
-      .gallery-item img { height: 200px; }
+      .gallery-item  { height: 200px; }
     }
 
     @media (max-width: 768px) {
       .intro-title { font-size: 3.5rem; }
       .gallery-grid { grid-template-columns: 1fr; gap: 25px; }
-      .gallery-item img { height: 280px; }
+      .gallery-item  { height: 280px; }
       .music-card { width: 140px; height: 190px; }
       .letter-paper { padding: 30px; background-size: 100% 2rem; transform: rotate(0); }
       .letter-content { font-size: 1.4rem; line-height: 2rem; }
@@ -485,32 +485,26 @@
     <div class="instruction-text">Click on songs to listen (Play all 3 to proceed)</div>
 
     <div class="music-container">
-      <div class="music-card" data-played="0"
-        onclick="handleMusicClick(this, 'song/1.mp3')">
-        <img src="https://picsum.photos/seed/music1/200" class="music-thumb">
-        <div class="music-info">
-          <h3>Piano Moment</h3>
-          <p>Instrumental</p>
-        </div>
-      </div>
+<div class="music-card" data-played="0" onclick="handleMusicClick(this, 'song/1.mp3')">
+  <img src="assets/music_thumb1.jpg" class="music-thumb"> <div class="music-info">
+    <h3>Piano Moment</h3>
+    <p>Instrumental</p>
+  </div>
+</div>
 
-      <div class="music-card" data-played="0"
-        onclick="handleMusicClick(this, 'song/2.mp3')">
-        <img src="https://picsum.photos/seed/music2/200" class="music-thumb">
-        <div class="music-info">
-          <h3>Romantic Night</h3>
-          <p>Piano</p>
-        </div>
-      </div>
+<div class="music-card" data-played="0" onclick="handleMusicClick(this, 'song/2.mp3')">
+  <img src="assets/music_thumb2.jpg" class="music-thumb"> <div class="music-info">
+    <h3>Romantic Night</h3>
+    <p>Piano</p>
+  </div>
+</div>
 
-      <div class="music-card" data-played="0"
-        onclick="handleMusicClick(this, 'song/3.mp3')">
-        <img src="https://picsum.photos/seed/music3/200" class="music-thumb">
-        <div class="music-info">
-          <h3>Soulmate</h3>
-          <p>Chill</p>
-        </div>
-      </div>
+<div class="music-card" data-played="0" onclick="handleMusicClick(this, 'song/3.mp3')">
+  <img src="assets/music_thumb3.jpg" class="music-thumb"> <div class="music-info">
+    <h3>Soulmate</h3>
+    <p>Chill</p>
+  </div>
+</div>
     </div>
 
     <button id="music-next-btn" class="next-btn" onclick="startBgAndGo()">
