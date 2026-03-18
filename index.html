@@ -678,25 +678,50 @@
       goToScene('scene-letter');
     }
 
-    // --- 4. POPULATE GALLERY ---
+    // --- 4. POPULATE GALLERY (UPDATED) ---
     function loadGallery() {
       const container = document.getElementById('gallery-container');
-      const captions = ["The First Look", "My Safe Place", "Eternal Smiles", "Precious Time", "Always You", "Endless Love"];
+      
+      // Yahan apni photos ke asli naam likhein jo assets folder mein hain
+      // Agar photos ke naam alag hain, toh unhe yahan update kar lein
+      const myPhotos = [
+        "photo1.jpg", 
+        "photo2.jpg", 
+        "photo3.jpg", 
+        "photo4.jpg", 
+        "photo5.jpg", 
+        "photo6.jpg"
+      ];
+      
+      const captions = [
+        "The First Look", 
+        "My Safe Place", 
+        "Eternal Smiles", 
+        "Precious Time", 
+        "Always You", 
+        "Endless Love"
+      ];
 
-      for (let i = 1; i <= 6; i++) {
+      // Pehle container ko khali karein (agar dubara load ho raha ho)
+      container.innerHTML = '';
+
+      for (let i = 0; i < myPhotos.length; i++) {
         const item = document.createElement('div');
         item.className = 'gallery-item';
+        
+        // Polaroid jaisa effect dene ke liye random rotation
         item.style.transform = `rotate(${(Math.random() * 8 - 4).toFixed(2)}deg)`;
 
         item.innerHTML = `
-          <img src="https://picsum.photos/seed/love${i}/300" alt="Memory ${i}">
-          <div class="gallery-caption">${captions[i - 1]} ❤️</div>
+          <img src="assets/${myPhotos[i]}" alt="Memory ${i + 1}">
+          <div class="gallery-caption">${captions[i]} ❤️</div>
         `;
         container.appendChild(item);
       }
     }
+    
+    // Function ko call karein
     loadGallery();
-
     // --- 5. FLOW LOGIC ---
 
     // INTRO -> MUSIC
